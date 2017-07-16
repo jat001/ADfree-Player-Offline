@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of ADfree Player Offline
  * <http://bbs.kafan.cn/thread-1514537-1-1.html>,
  * Copyright (C) yndoc xplsy 15536900
@@ -16,7 +16,7 @@ var taburls = []; //存放tab的url与flag，用作判断重定向,存储当前p
 var baesite = ['', '','http://127.0.0.1/'];
 //在线播放器地址.后面规则载入使用baesite[2],并会使用规则中tudou_olc的地址来填充baesite[0],而baesite[0]将会作为那些必须在线的swf的载入地址.如果拥有自己的服务器也可在此修改baesite[2],baesite[1]将会被填充为crossdomain的代理地址
 var ruleName = ['configlist','redirectlist','refererslist','proxylist'];
-var localflag = 1; //本地模式开启标示,1为本地,0为在线.在特殊网址即使开启本地模式仍会需要使用在线服务器,程序将会自行替换 initRules过程中将会改变并使用localStorage[]存取该值
+var localflag = 0; //本地模式开启标示,1为本地,0为在线.在特殊网址即使开启本地模式仍会需要使用在线服务器,程序将会自行替换 initRules过程中将会改变并使用localStorage[]存取该值
 var flushallow = 1; //用于控制是否自动清理缓存,1为自动,0为手动,initRules过程中将会改变并使用localStorage[]存取该值
 var compatible = 0;	//用于控制是否启动代理控制,1为禁用,0为启用,initRules过程中将会改变并使用localStorage[]存取该值
 var proxyflag = "";	//proxy调试标记,改为存储proxy的具体IP地址
@@ -53,7 +53,7 @@ var pac = {
 function ProxyControl(pram , ip) {
 	if(!compatible) {
 		if(versionPraser() == 40 ) {	//用于应对Chrome 40版本中引入的Proxy BUG
-			console.log("Proxy: Chrome > 39");
+			console.log("Proxy: Chrome = 40");
 			if(pram == "set"){
 				console.log("Setup Proxy");
 				chrome.proxy.settings.set({value: pac, scope: "regular"}, function(details) {});
@@ -419,7 +419,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 						//adjflag = taburls[id][1]; //读取flag存储
 						if ( /pps\.tv/i.test(testUrl)) {	//不满足v5条件换成v4,或者在pps.tv域名下强制改变
 							newUrl = newUrl.replace(/iqiyi5/i, 'iqiyi');
-						} 
+						}
 					}
 				}
 				break;
@@ -447,7 +447,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				else
 				{
 					if (redirectlist[i].exfind.test(testUrl) && localflag) { //特殊网址Flash内部调用切换到非本地模式
-//						newUrl = url.replace(redirectlist[i].find,baesite[ getRandom(3) ] + 'loader.swf' + "?showAd=0&VideoIDS=$2");	//多服务器均衡,因服务器原因暂未开启
+						//newUrl = url.replace(redirectlist[i].find,baesite[ getRandom(3) ] + 'loader.swf' + "?showAd=0&VideoIDS=$2");	//多服务器均衡,因服务器原因暂未开启
 						newUrl = url.replace(redirectlist[i].find, baesite[0] + 'loader.swf');
 					}
 				}
@@ -477,7 +477,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				else
 				{
 					if (redirectlist[i].exfind.test(testUrl) && localflag) { //特殊网址Flash内部调用切换到非本地模式
-				//		newUrl = url.replace(redirectlist[i].find,baesite[ getRandom(3) ] + 'loader.swf' + "?showAd=0&VideoIDS=$2");	//多服务器均衡,因服务器原因暂未开启
+						//newUrl = url.replace(redirectlist[i].find,baesite[ getRandom(3) ] + 'loader.swf' + "?showAd=0&VideoIDS=$2");	//多服务器均衡,因服务器原因暂未开启
 						newUrl = url.replace(redirectlist[i].find, baesite[0] + 'player.swf');
 						
 						console.log("Judge Flag");
@@ -493,7 +493,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 				case "youkujson":
 				console.log("Judge Flag");
-				if (/youku\.com/i.test(testUrl)) {
+				if (/(youku|tudou)\.com/i.test(testUrl)) {
 					try{
 						adjflag = taburls[id][1]; //读取flag存储
 					}
@@ -527,11 +527,11 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				*/
 				break;
 
-				case "sohu":
-				//console.log("Switch : sohu");
+				case "sohu_live":
+				//console.log("Switch : sohu_live");
 				letvflag = taburls[id][1];
 				if (redirectlist[i].exfind.test(testUrl) && localflag) { //特殊网址的Flash内部调用特例,只处理设置为本地模式的情况
-					newUrl = url.replace(redirectlist[i].find, baesite[0] + 'sohu.swf'); //转换成在线
+					newUrl = url.replace(redirectlist[i].find, baesite[0] + 'sohu_live.swf'); //转换成在线
 				}
 				break;
 
@@ -724,7 +724,7 @@ function isNeedUpdate(){
 				if(items['LastUpdate'] == null){
 					fetchAllRules();
 				}else if(items['LastUpdate'] < servertime){
-//					localStorage['localflag'] = 1;  //规则更新恢复本地模式,去掉注释即可开启
+					//localStorage['localflag'] = 1;  //规则更新恢复本地模式,去掉注释即可开启
 					fetchAllRules();
 				}
 //				console.log(items);
@@ -879,10 +879,6 @@ function genRules(listdata){
 			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/player.swf');
 			break;
 			
-			case "ku6":
-			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/ku6.swf');
-			break;
-			
 			case "tudou":
 			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/tudou.swf');
 			break;
@@ -893,14 +889,6 @@ function genRules(listdata){
 			
 			case "iqiyi":
 			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/iqiyi5.swf');
-			break;
-			
-			case "pps":
-			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/pps.swf');
-			break;
-			
-			case "sohu":
-			if((localflag - chkConfig(list[i].name)) > 0) list[i].replace = getUrl('swf/sohu.swf');
 			break;
 			
 			case "sohu_live":
