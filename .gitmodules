@@ -1,0 +1,3 @@
+[submodule "haoutil"]
+	path = haoutil
+	url = git@bitbucket.org:kafan15536900/haoutil.git
